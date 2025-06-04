@@ -1,0 +1,45 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\IdentityServer\\CompanyEmployees.API\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{88C813E8-77AF-48EF-878A-845BCB65AF0B}|CompanyEmployees\\CompanyEmployees.csproj|d:\\projects\\identityserver\\companyemployees.api\\companyemployees\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{88C813E8-77AF-48EF-878A-845BCB65AF0B}|CompanyEmployees\\CompanyEmployees.csproj|solutionrelative:companyemployees\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Projects\\IdentityServer\\CompanyEmployees.API\\CompanyEmployees\\appsettings.json",
+              "RelativeDocumentMoniker": "CompanyEmployees\\appsettings.json",
+              "ToolTip": "D:\\Projects\\IdentityServer\\CompanyEmployees.API\\CompanyEmployees\\appsettings.json",
+              "RelativeToolTip": "CompanyEmployees\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-06-04T21:09:26.719Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
