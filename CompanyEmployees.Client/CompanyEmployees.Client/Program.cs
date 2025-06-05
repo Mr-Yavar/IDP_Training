@@ -16,6 +16,7 @@ builder.Services.AddHttpClient(
         client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
     }
 );
+
 builder
     .Services.AddAuthentication(opt =>
     {
