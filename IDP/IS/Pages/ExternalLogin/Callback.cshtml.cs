@@ -2,11 +2,11 @@
 // See LICENSE in the project root for license information.
 
 using System.Security.Claims;
+using Duende.IdentityModel;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Test;
-using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,28 +27,38 @@ public class Callback : PageModel
         IIdentityServerInteractionService interaction,
         IEventService events,
         ILogger<Callback> logger,
-        TestUserStore? users = null)
+        TestUserStore? users = null
+    )
     {
         // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-        _users = users ?? throw new InvalidOperationException("Please call 'AddTestUsers(TestUsers.Users)' on the IIdentityServerBuilder in Startup or remove the TestUserStore from the AccountController.");
+        _users =
+            users
+            ?? throw new InvalidOperationException(
+                "Please call 'AddTestUsers(TestUsers.Users)' on the IIdentityServerBuilder in Startup or remove the TestUserStore from the AccountController."
+            );
 
         _interaction = interaction;
         _logger = logger;
         _events = events;
     }
-        
+
     public async Task<IActionResult> OnGet()
     {
         // read external identity from the temporary cookie
-        var result = await HttpContext.AuthenticateAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
+        var result = await HttpContext.AuthenticateAsync(
+            IdentityServerConstants.ExternalCookieAuthenticationScheme
+        );
         if (result.Succeeded != true)
         {
-            throw new InvalidOperationException($"External authentication error: { result.Failure }");
+            throw new InvalidOperationException($"External authentication error: {result.Failure}");
         }
 
-        var externalUser = result.Principal ?? 
-            throw new InvalidOperationException("External authentication produced a null Principal");
-		
+        var externalUser =
+            result.Principal
+            ?? throw new InvalidOperationException(
+                "External authentication produced a null Principal"
+            );
+
         if (_logger.IsEnabled(LogLevel.Debug))
         {
             var externalClaims = externalUser.Claims.Select(c => $"{c.Type}: {c.Value}");
@@ -59,11 +69,14 @@ public class Callback : PageModel
         // try to determine the unique id of the external user (issued by the provider)
         // the most common claim type for that are the sub claim and the NameIdentifier
         // depending on the external provider, some other claim type might be used
-        var userIdClaim = externalUser.FindFirst(JwtClaimTypes.Subject) ??
-                          externalUser.FindFirst(ClaimTypes.NameIdentifier) ??
-                          throw new InvalidOperationException("Unknown userid");
+        var userIdClaim =
+            externalUser.FindFirst(JwtClaimTypes.Subject)
+            ?? externalUser.FindFirst(ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("Unknown userid");
 
-        var provider = result.Properties.Items["scheme"] ?? throw new InvalidOperationException("Null scheme in authentiation properties");
+        var provider =
+            result.Properties.Items["scheme"]
+            ?? throw new InvalidOperationException("Null scheme in authentiation properties");
         var providerUserId = userIdClaim.Value;
 
         // find external user
@@ -86,13 +99,13 @@ public class Callback : PageModel
         var additionalLocalClaims = new List<Claim>();
         var localSignInProps = new AuthenticationProperties();
         CaptureExternalLoginContext(result, additionalLocalClaims, localSignInProps);
-            
+
         // issue authentication cookie for user
         var isuser = new IdentityServerUser(user.SubjectId)
         {
             DisplayName = user.Username,
             IdentityProvider = provider,
-            AdditionalClaims = additionalLocalClaims
+            AdditionalClaims = additionalLocalClaims,
         };
 
         await HttpContext.SignInAsync(isuser, localSignInProps);
@@ -105,7 +118,16 @@ public class Callback : PageModel
 
         // check if external login is in the context of an OIDC request
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
-        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.SubjectId, user.Username, true, context?.Client.ClientId));
+        await _events.RaiseAsync(
+            new UserLoginSuccessEvent(
+                provider,
+                providerUserId,
+                user.SubjectId,
+                user.Username,
+                true,
+                context?.Client.ClientId
+            )
+        );
         Telemetry.Metrics.UserLogin(context?.Client.ClientId, provider!);
 
         if (context != null)
@@ -123,16 +145,30 @@ public class Callback : PageModel
 
     // if the external login is OIDC-based, there are certain things we need to preserve to make logout work
     // this will be different for WS-Fed, SAML2p or other protocols
-    private static void CaptureExternalLoginContext(AuthenticateResult externalResult, List<Claim> localClaims, AuthenticationProperties localSignInProps)
+    private static void CaptureExternalLoginContext(
+        AuthenticateResult externalResult,
+        List<Claim> localClaims,
+        AuthenticationProperties localSignInProps
+    )
     {
-        ArgumentNullException.ThrowIfNull(externalResult.Principal, nameof(externalResult.Principal));
+        ArgumentNullException.ThrowIfNull(
+            externalResult.Principal,
+            nameof(externalResult.Principal)
+        );
 
         // capture the idp used to login, so the session knows where the user came from
-        localClaims.Add(new Claim(JwtClaimTypes.IdentityProvider, externalResult.Properties?.Items["scheme"] ?? "unknown identity provider"));
+        localClaims.Add(
+            new Claim(
+                JwtClaimTypes.IdentityProvider,
+                externalResult.Properties?.Items["scheme"] ?? "unknown identity provider"
+            )
+        );
 
         // if the external system sent a session id claim, copy it over
         // so we can use it for single sign-out
-        var sid = externalResult.Principal.Claims.FirstOrDefault(x => x.Type == JwtClaimTypes.SessionId);
+        var sid = externalResult.Principal.Claims.FirstOrDefault(x =>
+            x.Type == JwtClaimTypes.SessionId
+        );
         if (sid != null)
         {
             localClaims.Add(new Claim(JwtClaimTypes.SessionId, sid.Value));
@@ -142,7 +178,12 @@ public class Callback : PageModel
         var idToken = externalResult.Properties?.GetTokenValue("id_token");
         if (idToken != null)
         {
-            localSignInProps.StoreTokens(new[] { new AuthenticationToken { Name = "id_token", Value = idToken } });
+            localSignInProps.StoreTokens(
+                new[]
+                {
+                    new AuthenticationToken { Name = "id_token", Value = idToken },
+                }
+            );
         }
     }
 }

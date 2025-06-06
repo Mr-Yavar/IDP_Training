@@ -12,11 +12,24 @@ namespace IS
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
                 new IdentityResources.Address(),
-                
+                new IdentityResource("roles", "User role(s)", new List<string> { "role" }),
+                new IdentityResource("country", "Your country", new List<string> { "country" }),
             };
 
-        public static IEnumerable<ApiScope> ApiScopes => new ApiScope[] { };
-        public static IEnumerable<ApiResource> Apis => new ApiResource[] { };
+        public static IEnumerable<ApiScope> ApiScopes =>
+            new ApiScope[]
+            {
+                new ApiScope("companyemployeeapi.scope", "CompanyEmployee API Scope"),
+            };
+        public static IEnumerable<ApiResource> Apis =>
+            new ApiResource[]
+            {
+                new ApiResource("companyemployeeapi", "CompanyEmployee API")
+                {
+                    Scopes = { "companyemployeeapi.scope" },
+                    UserClaims = new List<string>() { "role" },
+                },
+            };
         public static IEnumerable<Client> Clients =>
             new Client[]
             {
@@ -32,6 +45,9 @@ namespace IS
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Address,
+                        "roles",
+                        "companyemployeeapi.scope",
+                        "country",
                     },
                     ClientSecrets = { new Secret("CompanyEmployeeClientSecret".Sha512()) },
                     RequirePkce = true,
@@ -41,6 +57,9 @@ namespace IS
                         "https://localhost:5010/signout-callback-oidc",
                     },
                     ClientUri = "https://localhost:5010",
+                    AccessTokenLifetime = 120,
+                    AllowOfflineAccess = true,
+                    UpdateAccessTokenClaimsOnRefresh = true
                 },
             };
     }

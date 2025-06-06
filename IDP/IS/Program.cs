@@ -20,12 +20,17 @@ try
     );
 
     var app = builder.ConfigureServices().ConfigurePipeline();
-
+    var config = app.Services.GetRequiredService<IConfiguration>();
+    var connectionString = config.GetConnectionString("identitySqlConnection");
+    SeedUserData.EnsureSeedData(connectionString);
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Unhandled exception");
+    if (ex.GetType().Name != "HostAbortedException")
+    {
+        Log.Fatal(ex, $"Unhandled exception {ex.GetType().Name}");
+    }
 }
 finally
 {

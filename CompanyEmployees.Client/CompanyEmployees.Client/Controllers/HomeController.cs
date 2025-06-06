@@ -1,8 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using CompanyEmployees.Client.Models;
+using Duende.IdentityModel.Client;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace CompanyEmployees.Client.Controllers;
 
@@ -27,19 +32,57 @@ public class HomeController : Controller
 
         var response = await httpClient.GetAsync("api/companies").ConfigureAwait(false);
 
-        response.EnsureSuccessStatusCode();
+        if (response.IsSuccessStatusCode)
+        {
+            var companiesString = await response.Content.ReadAsStringAsync();
 
-        var companiesString = await response.Content.ReadAsStringAsync();
-        var companies = JsonSerializer.Deserialize<List<CompanyViewModel>>(
-            companiesString,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-        );
-
-        return View(companies);
+            var companies = JsonSerializer.Deserialize<List<CompanyViewModel>>(
+                companiesString,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+            return View(companies);
+        }
+        else if (
+            response.StatusCode == HttpStatusCode.Unauthorized
+            || response.StatusCode == HttpStatusCode.Forbidden
+        )
+        {
+            return RedirectToAction("AccessDenied", "Auth");
+        }
+        throw new Exception("There is a problem accessing the API.");
     }
 
-    public IActionResult Privacy()
+    [Authorize(Policy = "CanCreateAndModifyData")]
+    public async Task<IActionResult> Privacy()
     {
+        var idpClient = _httpClientFactory.CreateClient("IDPClient");
+        var metaDataResponse = await idpClient.GetDiscoveryDocumentAsync();
+
+        var accessToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+
+        var response = await idpClient.GetUserInfoAsync(
+            new UserInfoRequest { Address = metaDataResponse.UserInfoEndpoint, Token = accessToken }
+        );
+
+        if (response.IsError)
+        {
+            throw new Exception(
+                "Problem while fetching data from the UserInfo endpoint",
+                response.Exception
+            );
+        }
+        var addressClaim = response.Claims.FirstOrDefault(c => c.Type.Equals("address"));
+        var roleClaim = response.Claims.FirstOrDefault(c => c.Type.Equals("role"));
+
+        User.AddIdentity(
+            new ClaimsIdentity(
+                new List<Claim>
+                {
+                    new Claim(addressClaim.Type.ToString(), addressClaim.Value.ToString()),
+                    new Claim(roleClaim.Type.ToString(), roleClaim.Value.ToString()),
+                }
+            )
+        );
         return View();
     }
 

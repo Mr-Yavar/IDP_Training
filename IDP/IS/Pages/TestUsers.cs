@@ -3,9 +3,9 @@
 
 using System.Security.Claims;
 using System.Text.Json;
+using Duende.IdentityModel;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Test;
-using IdentityModel;
 
 namespace IdentityServer;
 
@@ -43,6 +43,8 @@ public static class TestUsers
                             JsonSerializer.Serialize(address),
                             IdentityServerConstants.ClaimValueTypes.Json
                         ),
+                        new Claim(JwtClaimTypes.Role, "Administrator"),
+                        new Claim("country", "USA"),
                     },
                 },
                 new TestUser
@@ -63,6 +65,7 @@ public static class TestUsers
                             JsonSerializer.Serialize(address),
                             IdentityServerConstants.ClaimValueTypes.Json
                         ),
+                        new Claim(JwtClaimTypes.Role, "Visitor"),
                     },
                 },
             };

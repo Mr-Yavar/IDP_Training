@@ -1,4 +1,9 @@
+using System.Reflection;
 using IdentityServer;
+using IS.Entities;
+using IS.InitialSeed;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace IS
@@ -9,17 +14,40 @@ namespace IS
         {
             // uncomment if you want to add a UI
             //builder.Services.AddRazorPages();
-
-            builder.Services.AddIdentityServer(options =>
+            var migrationAssembly = typeof(Program).GetTypeInfo().Assembly.GetName().Name;
+            builder.Services.AddDbContext<UserContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("identitySqlConnection")
+                )
+            );
+            builder
+                .Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<UserContext>()
+                .AddDefaultTokenProviders();
+            builder
+                .Services.AddIdentityServer(options =>
                 {
                     // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
                     options.EmitStaticAudienceClaim = true;
                 })
-                .AddInMemoryApiResources(Config.Apis)
-                .AddInMemoryIdentityResources(Config.IdentityResources)
-                .AddInMemoryApiScopes(Config.ApiScopes)
-                .AddInMemoryClients(Config.Clients)
-                .AddTestUsers(TestUsers.Users);
+                .AddTestUsers(TestUsers.Users)
+                .AddConfigurationStore(opt =>
+                {
+                    opt.ConfigureDbContext = c =>
+                        c.UseSqlServer(
+                            builder.Configuration.GetConnectionString("sqlConnection"),
+                            sql => sql.MigrationsAssembly(migrationAssembly)
+                        );
+                })
+                .AddOperationalStore(opt =>
+                {
+                    opt.ConfigureDbContext = o =>
+                        o.UseSqlServer(
+                            builder.Configuration.GetConnectionString("sqlConnection"),
+                            sql => sql.MigrationsAssembly(migrationAssembly)
+                        );
+                })
+                .AddAspNetIdentity<ApplicationUser>();
 
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
@@ -46,6 +74,7 @@ namespace IS
             app.UseAuthorization();
             app.MapRazorPages().RequireAuthorization();
 
+            app.MigrateDatabase();
             return app;
         }
     }
