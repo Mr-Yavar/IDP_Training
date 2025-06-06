@@ -61,6 +61,41 @@ namespace IS
                     AllowOfflineAccess = true,
                     UpdateAccessTokenClaimsOnRefresh = true
                 },
+                new Client
+{
+    ClientId = "adminui",
+    ClientName = "Skoruba Admin UI",
+    AllowedGrantTypes = GrantTypes.Code,
+
+    RequireClientSecret = true,
+    ClientSecrets =
+    {
+        new Secret("AdminUISecert".Sha256())
+    },
+
+    RedirectUris = {
+        "https://localhost:999/signin-oidc" // Your Admin UI base URL + signin path
+    },
+    PostLogoutRedirectUris = {
+        "https://localhost:999/signout-callback-oidc"
+    },
+
+    AllowedScopes = {
+        IdentityServerConstants.StandardScopes.OpenId,
+        IdentityServerConstants.StandardScopes.Profile,
+        IdentityServerConstants.StandardScopes.Email,
+        "roles", // if roles are used
+        "admin_api" // your Admin API scope
+    },
+
+    AllowOfflineAccess = true, // For refresh tokens
+    RequirePkce = true,
+    AccessTokenLifetime = 3600,
+    IdentityTokenLifetime = 300,
+
+    // Optional: role claims
+    AlwaysIncludeUserClaimsInIdToken = true
+}
             };
     }
 }
