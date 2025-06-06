@@ -1,4 +1,5 @@
 using System.Reflection;
+using AutoMapper;
 using IdentityServer;
 using IS.Entities;
 using IS.InitialSeed;
@@ -52,6 +53,8 @@ namespace IS
             builder.Services.AddAuthentication();
             builder.Services.AddAuthorization();
             builder.Services.AddRazorPages();
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
+
             return builder.Build();
         }
 
@@ -67,7 +70,7 @@ namespace IS
             // uncomment if you want to add a UI
             app.UseStaticFiles();
             app.UseRouting();
-
+          
             app.UseIdentityServer();
 
             // uncomment if you want to add a UI

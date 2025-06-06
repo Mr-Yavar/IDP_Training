@@ -71,7 +71,7 @@ public class SeedUserData
         string email
     )
     {
-        var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var user = userMgr.FindByNameAsync(email).Result;
         if (user == null)
         {
@@ -105,8 +105,6 @@ public class SeedUserData
                 )
                 .Result;
             CheckResult(result);
-
-        
         }
     }
 
